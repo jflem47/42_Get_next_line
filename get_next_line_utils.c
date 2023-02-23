@@ -6,7 +6,7 @@
 /*   By: jlemieux <jlemieux@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/21 14:40:45 by jlemieux          #+#    #+#             */
-/*   Updated: 2023/02/22 16:46:49 by jlemieux         ###   ########.fr       */
+/*   Updated: 2023/02/23 15:00:27 by jlemieux         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,20 +20,19 @@ void	ft_bzero(void *b, size_t len)
 
 void	*ft_sfree(void *str)
 {
-	if (str)
-		free(str);
+	free(str);
 	return (NULL);
 }
 
 void	*ft_calloc(size_t count, size_t size)
 {
-	void	*new;
+	void	*res;
 
-	new = malloc(count * size);
-	if (!new)
-		return (new = ft_sfree(new), NULL);
-	ft_bzero(new, count * size);
-	return (new);
+	res = malloc(count * size);
+	while (!res)
+		res = malloc(count * size);
+	ft_bzero(res, count * size);
+	return (res);
 }
 
 size_t	ft_strlen(char *str)
@@ -50,18 +49,18 @@ char	*ft_strjoin(char *s1, char *s2)
 {
 	size_t	s1_len;
 	size_t	s2_len;
-	char	*new;
+	char	*res;
 
 	s1_len = ft_strlen(s1);
 	s2_len = ft_strlen(s2);
-	new = ft_calloc(s1_len + s2_len + 1, sizeof(char));
-	if (!new)
-		return (new = ft_sfree(new), NULL);
+	res = ft_calloc(s1_len + s2_len + 1, sizeof(char));
+	if (!res)
+		return (res = ft_sfree(res), NULL);
 	while (s1_len + s2_len-- > s1_len)
-		new[s1_len + s2_len] = s2[s2_len];
+		res[s1_len + s2_len] = s2[s2_len];
 	while (s1_len--)
-		new[s1_len] = s1[s1_len];
-	if (*new == 0)
-		new = ft_sfree(new);
-	return (ft_sfree(s1), new);
+		res[s1_len] = s1[s1_len];
+	if (*res == 0)
+		res = ft_sfree(res);
+	return (ft_sfree(s1), res);
 }

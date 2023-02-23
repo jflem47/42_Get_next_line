@@ -6,7 +6,7 @@
 /*   By: jlemieux <jlemieux@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/21 14:36:48 by jlemieux          #+#    #+#             */
-/*   Updated: 2023/02/22 17:50:47 by jlemieux         ###   ########.fr       */
+/*   Updated: 2023/02/23 15:09:35 by jlemieux         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,27 @@ int	find_nl(char *s)
 	return (0);
 }
 
+static void	get_read(t_nl *nl, int fd, char **buf)
+{
+	ft_bzero(nl->buf, BUFFER_SIZE + 1);
+	nl->rd = read(fd, nl->buf, BUFFER_SIZE);
+	if (nl->rd <= 0)
+		return ;
+	buf[fd] = ft_strjoin(buf[fd], nl->buf);
+	if (!buf[fd])
+		buf[fd] = ft_sfree(buf[fd]);
+}
+
+static void	buffs_set(t_nl *nl, char **buf, int fd)
+{
+	nl->buf = ft_sfree(nl->buf);
+	nl->next_line = get_nline(buf[fd], &nl->nl_pos);
+	nl->buf = buf[fd];
+	buf[fd] = ft_strjoin(NULL, buf[fd] + nl->nl_pos);
+	if (!buf[fd])
+		buf[fd] = ft_sfree(buf[fd]);
+}
+
 char	*get_nline(char *str, int *pos)
 {
 	size_t	i;
@@ -42,7 +63,7 @@ char	*get_nline(char *str, int *pos)
 		return (NULL);
 	res = ft_calloc(i + 1, sizeof(char));
 	if (!res)
-		return (ft_sfree(res));
+		return (res = ft_sfree(res), NULL);
 	while (i--)
 		res[i] = str[i];
 	return (res);
@@ -60,18 +81,19 @@ char	*get_next_line(int fd)
 	if (!buf[fd])
 		return (buf[fd] = ft_sfree(buf[fd]), NULL);
 	nl.buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
+	while (!nl.buf)
+		nl.buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
 	nl.nl_pos = 0;
 	while (find_nl(buf[fd]) == 0)
 	{
-		ft_bzero(nl.buf, BUFFER_SIZE + 1);
-		nl.rd = read(fd, nl.buf, BUFFER_SIZE);
-		if (nl.rd <= 0)
+		get_read(&nl, fd, buf);
+		if (nl.rd <= 0 || !buf[fd])
 			break ;
-		buf[fd] = ft_strjoin(buf[fd], nl.buf);
 	}
-	nl.buf = ft_sfree(nl.buf);
-	nl.next_line = get_nline(buf[fd], &nl.nl_pos);
-	nl.buf = buf[fd];
-	buf[fd] = ft_strjoin(NULL, buf[fd] + nl.nl_pos);
+	if (!buf[fd])
+		return (buf[fd] = ft_sfree(buf[fd]), NULL);
+	buffs_set(&nl, buf, fd);
+	if (nl.rd == 0)
+		buf[fd] = ft_sfree(buf[fd]);
 	return (nl.buf = ft_sfree(nl.buf), nl.next_line);
 }
